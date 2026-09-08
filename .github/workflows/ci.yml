@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: "22"
+
+jobs:
+  verificar:
+    name: Lint, typecheck, testes e build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - run: npm ci
+      - run: npx prisma generate
+
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  testes-integracao:
+    name: Testes de integração (Postgres real via Testcontainers)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - run: npm ci
+      - run: npx prisma generate
+
+      # Testcontainers sobe o próprio Postgres efêmero — runners do GitHub
+      # Actions já vêm com Docker, sem configuração extra
+      # (Estratégia de Testes §2/backend-arquitetura-nodejs §6).
+      - run: npm run test:integracao
+
+  seguranca:
+    name: Auditoria de dependências e varredura de segredo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - run: npm ci
+
+      # Informativo, não bloqueia o merge: vulnerabilidade de dependência
+      # transitiva de dev-tooling (Prisma CLI/Vitest/Testcontainers) exige
+      # decisão consciente de upgrade major, não deveria travar todo PR
+      # (seguranca-appsec-lgpd §7 — Supply Chain Security).
+      - run: npm audit --audit-level=high
+        continue-on-error: true
+
+      # Segredo commitado uma vez precisa ser rotacionado, não só removido
+      # do histórico — bloqueia o merge se achar algo
+      # (seguranca-appsec-lgpd §7 — Secret Scanning).
+      - uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --results=verified,unknown
