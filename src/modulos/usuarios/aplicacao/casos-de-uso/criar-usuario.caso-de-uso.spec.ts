@@ -16,11 +16,23 @@ class RepositorioDeUsuariosEmMemoria implements RepositorioDeUsuarios {
     this.usuarios.push(usuario);
     return Promise.resolve(usuario);
   }
+
+  buscarPorEmail(email: string): Promise<Usuario | null> {
+    return Promise.resolve(this.usuarios.find((u) => u.email === email) ?? null);
+  }
+
+  buscarPorId(id: string): Promise<Usuario | null> {
+    return Promise.resolve(this.usuarios.find((u) => u.id === id) ?? null);
+  }
 }
 
 class HashDeSenhaFalso implements HashDeSenha {
   gerarHash(senhaEmTexto: string): Promise<string> {
     return Promise.resolve(`hash(${senhaEmTexto})`);
+  }
+
+  verificar(senhaEmTexto: string, hash: string): Promise<boolean> {
+    return Promise.resolve(`hash(${senhaEmTexto})` === hash);
   }
 }
 

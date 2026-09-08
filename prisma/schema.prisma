@@ -10,12 +10,32 @@ datasource db {
 // Coleta mínima de PII (Data Minimization, LGPD art. 6º): só nome, e-mail e
 // hash de senha — nenhum campo "que pode ser útil um dia".
 model Usuario {
-  id         String   @id @default(uuid())
-  nome       String
-  email      String   @unique
-  senhaHash  String
-  criadoEm   DateTime @default(now())
-  atualizadoEm DateTime @updatedAt
+  id           String          @id @default(uuid())
+  nome         String
+  email        String          @unique
+  senhaHash    String
+  criadoEm     DateTime        @default(now())
+  atualizadoEm DateTime        @updatedAt
+  sessoes      SessaoRefresh[]
 
   @@map("usuarios")
+}
+
+// Refresh Token Rotation com detecção de reuso (seguranca-appsec-lgpd §1):
+// só o hash do token é persistido; `familiaId` agrupa toda a linhagem de
+// rotações de um mesmo login — reaparecer um token já revogado revoga a
+// família inteira.
+model SessaoRefresh {
+  id         String    @id @default(uuid())
+  usuarioId  String
+  familiaId  String
+  tokenHash  String    @unique
+  revogadaEm DateTime?
+  expiraEm   DateTime
+  criadaEm   DateTime  @default(now())
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([familiaId])
+  @@map("sessoes_refresh")
 }

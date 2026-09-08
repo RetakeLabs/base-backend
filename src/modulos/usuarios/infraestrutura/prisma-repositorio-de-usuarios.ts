@@ -31,4 +31,22 @@ export class PrismaRepositorioDeUsuarios implements RepositorioDeUsuarios {
       throw erro;
     }
   }
+
+  async buscarPorEmail(email: string): Promise<Usuario | null> {
+    const registro = await this.prisma.usuario.findUnique({
+      where: { email },
+      select: { id: true, nome: true, email: true, senhaHash: true, criadoEm: true },
+    });
+
+    return registro ? Usuario.reconstituir(registro) : null;
+  }
+
+  async buscarPorId(id: string): Promise<Usuario | null> {
+    const registro = await this.prisma.usuario.findUnique({
+      where: { id },
+      select: { id: true, nome: true, email: true, senhaHash: true, criadoEm: true },
+    });
+
+    return registro ? Usuario.reconstituir(registro) : null;
+  }
 }

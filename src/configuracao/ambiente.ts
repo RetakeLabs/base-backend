@@ -12,6 +12,8 @@ const esquemaDeAmbiente = z.object({
     .min(1)
     .transform((valor) => valor.split(",").map((origem) => origem.trim())),
   NIVEL_LOG: z.enum(["debug", "info", "warn", "error"]).default("info"),
+  // HS256 exige entropia suficiente na chave — 32 bytes é o mínimo prático.
+  JWT_SECRET: z.string().min(32, "JWT_SECRET deve ter ao menos 32 caracteres"),
 });
 
 const resultado = esquemaDeAmbiente.safeParse(process.env);

@@ -3,4 +3,5 @@
 // aplicação independente de custo real de Argon2/bcrypt.
 export interface HashDeSenha {
   gerarHash(senhaEmTexto: string): Promise<string>;
+  verificar(senhaEmTexto: string, hash: string): Promise<boolean>;
 }

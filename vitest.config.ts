@@ -11,6 +11,7 @@ export default defineConfig({
       DATABASE_URL: "postgresql://usuario:senha@localhost:5432/base_backend_test",
       CORS_ORIGENS_PERMITIDAS: "http://localhost:3000",
       NIVEL_LOG: "error",
+      JWT_SECRET: "segredo-dummy-de-teste-com-mais-de-32-caracteres",
     },
   },
 });
